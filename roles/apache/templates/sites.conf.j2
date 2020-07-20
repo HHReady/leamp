@@ -1,0 +1,19 @@
+<VirtualHost {{ http_host }}:{{ http_port }}>
+    ServerAdmin webmaster@{{ t_domain }}
+    ServerName {{ t_domain }}
+    ServerAlias www.{{ t_domain }}
+    DocumentRoot /var/www/{{ t_domain }}/DOC_ROOT
+    <Directory /var/www/{{ t_domain }}/DOC_ROOT/>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    <IfModule mpm_itk_module>
+	AssignUserId {{ apache_user }} {{ t_domain }}
+    </IfModule>
+    ErrorLog /var/www/{{ t_domain }}/logs/error.log
+    CustomLog /var/www/{{ t_domain }}/logs/access.log combined
+</VirtualHost>
+
+
+

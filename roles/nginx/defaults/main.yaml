@@ -1,0 +1,13 @@
+---
+nginx_templates:
+  - 'apache24'
+  - 'phpmyadmin'
+
+nginx_vhosts:
+  - 'site.ru'
+  - 'site-2.ru'
+
+nginx_user: 'www-data'
+nginx_port: 80
+pma_alias: phpmyadmin
+http_port: 81		# apache

@@ -1,0 +1,11 @@
+[db]
+deb2 ansible_host=10.0.3.249
+
+#v2 ansible_host=10.0.3.49
+#v3 ansible_host=10.0.3.84
+
+[all:vars]
+#ansible_ssh_user=ubuntu
+#ansible_ssh_pass=ubuntu
+#ansible_become_pass=ubuntu
+ansible_python_interpreter=/usr/bin/python3

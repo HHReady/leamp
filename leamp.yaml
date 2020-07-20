@@ -1,0 +1,53 @@
+---
+- hosts: deb2
+  become: yes
+  remote_user: root
+
+  roles:
+    - role: apache
+      http_port: 81
+      http_host: "127.0.0.1"
+      servername: localhost
+      domains:
+        - site.ru
+        - site-2.ru
+
+    - role: php
+      mysql_host: 'localhost'
+      mysql_user: 'test'
+      mysql_user_password: '123'
+      domains:
+        - site.ru
+        - site-2.ru
+
+    - role: mysql
+      mysql_version: "8.0"
+      mysql_root_password: 123
+
+      mysql_databases:
+        - name: exam_db
+          encoding: latin1
+          collation: latin1_general_ci
+      mysql_users:
+        - name: test_user
+          host: "%"
+          password: 123
+          priv: "exam_db.*:ALL"
+
+    - role: phpmyadmin
+      pma_alias: 'phpmyadmin'
+      pma_db: 'phpmyadmin'
+      pma_mysql_user: 'pma'
+      pma_mysql_user_password: '123'
+
+    - role: nginx
+
+    - role: wp
+      domains:
+        - site.ru
+
+    - role: simplefm
+      domains:
+        - site-2.ru
+
+

@@ -1,0 +1,28 @@
+---
+- name: copy simple file manager
+  template:
+    src: simplefm.php.j2
+    dest: "/var/www/site-2.ru/DOC_ROOT/simplefm.php"
+    owner: site-2.ru
+    group: site-2.ru
+    mode: "644"
+
+- name: set rights
+  file:
+    path: /var/www/{{ item }}
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0775
+    recurse: yes
+  with_items: "{{ domains }}"
+
+- name: set rights 
+  file:
+    path: /var/www/{{ item }}/DOC_ROOT
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0775
+    recurse: yes
+  with_items: "{{ domains }}"

@@ -1,0 +1,25 @@
+server {
+  listen {{ nginx_port }};
+  server_name {{ v_domain }} www.{{ v_domain }};
+
+  root /var/www/{{ v_domain }}/DOC_ROOT;
+  charset utf-8;
+
+  access_log /var/www/{{ v_domain }}/logs/nginx-access.log main;
+  error_log /var/www/{{ v_domain }}/logs/nginx-error.log error;
+
+  index index.html index.htm index.php;
+
+  include /etc/nginx/templates/apache24.conf;
+  include /etc/nginx/templates/phpmyadmin.conf;
+  location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+    try_files $uri $uri/;
+    root /var/www/{{ v_domain }}/DOC_ROOT/wordpress/;
+   }
+   location ~ ^/wp-includes/(.+\.jpg|jpeg|gif|png|ico|txt)$ {
+    try_files $uri $uri/;
+    root /var/www/{{ v_domain }}/DOC_ROOT/wordpress/;
+    proxy_pass http://apache24;
+   }
+#img
+}

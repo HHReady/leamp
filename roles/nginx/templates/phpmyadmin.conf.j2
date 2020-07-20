@@ -1,0 +1,15 @@
+location /{{ pma_alias }} {
+  root /usr/share/;
+  index index.php;
+
+  location ~ ^/{{ pma_alias }}/(.+\.php)$ {
+    try_files $uri =404;
+    root /usr/share/;
+    proxy_pass http://apache24;
+   }
+ 
+  location ~* ^/{{ pma_alias }}/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+    root /usr/share/;
+    expires 1M;
+  }
+}

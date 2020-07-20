@@ -1,0 +1,76 @@
+- name: Creates database for WordPress
+  mysql_db:
+    name: "{{ wp_mysql_db }}"
+    state: present
+    login_user: root
+    login_password: "{{wp_mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user for WordPress
+  mysql_user:
+    name: "{{ wp_mysql_user }}"
+    password: "{{ wp_mysql_password }}"
+    priv: "{{ wp_mysql_db }}.*:ALL"
+    state: present
+    login_user: root
+    login_password: "{{ wp_mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+ # WordPress Configuration
+- name: Download and unpack latest WordPress
+  unarchive:
+    src: https://wordpress.org/latest.tar.gz
+    dest: "/var/www/{{ http_host }}/DOC_ROOT/"
+    remote_src: yes
+#    extra_opts: ['--strip-components=1']
+    creates: "/var/www/{{ http_host }}/DOC_ROOT/wordpress"
+    owner: '{{ wp_site_user }}'
+    group: '{{ wp_site_group }}'
+
+- name: Set up wp-config
+  template:
+    src: "templates/wp-config.php.j2"
+    dest: "/var/www/{{ http_host }}/DOC_ROOT/wordpress/wp-config.php"
+    owner: '{{ wp_site_user }}'
+    group: '{{ wp_site_group }}'
+
+- name: Change DocumentRoot
+  replace:
+    path: '/etc/apache2/sites-available/{{ item }}.conf'
+    regexp: '(^\s*DocumentRoot) (.*)$'
+    replace: '\1 /var/www/{{ item }}/DOC_ROOT/wordpress'
+    backup: no                                      # yes?
+  with_items: "{{ domains }}"
+
+- name: Change DocumentRoot work dir
+  replace:
+    path: '/etc/apache2/sites-available/{{ item }}.conf'
+    regexp: '(^\s*<Directory) (.*)$'
+    replace: '\1 /var/www/{{ item }}/DOC_ROOT/wordpress/>'
+    backup: no                                      # yes?
+  with_items: "{{ domains }}"
+
+- name: Change web root in nginx virtialhost
+  replace:
+    path: '/etc/nginx/sites-available/{{ item  }}.conf'
+    regexp: '(^\s*root) (.*)$'
+    replace: '\1 /var/www/{{ item }}/DOC_ROOT/wordpress;'
+    backup: no                                      # yes?
+  with_items: "{{ domains }}"
+
+- name: Deny access to  .svn  .git
+  blockinfile:
+    path: '/etc/nginx/sites-available/site.ru.conf'
+    marker: '# {mark} added by ansible:Deny access to dirs: .git  .svn'
+    insertafter: '#img'
+    state: present
+    block: |
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+           try_files $uri $uri/;
+      root /var/www/site.ru/DOC_ROOT/wordpress;          }
+      location ~ ^/wp-includes/(.+\.jpg|jpeg|gif|png|ico|txt)$ {
+        try_files $uri $uri/;
+        root /var/www/site.ru/DOC_ROOT/wordpress;
+        proxy_pass http://apache24;         }
+
+

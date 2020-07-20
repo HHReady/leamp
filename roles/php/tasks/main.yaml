@@ -1,0 +1,72 @@
+---
+#- name: "Include variables"
+#  include_vars: "debian.yaml"
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install a list of packages
+  apt:
+    pkg:
+      - lsb-release
+      - apt-transport-https
+      - ca-certificates
+
+- name: import the php  apt key
+  apt_key:
+    url: https://packages.sury.org/php/apt.gpg
+    state: present
+
+- apt_repository:
+    repo: deb https://packages.sury.org/php/ stretch  main
+    state: present
+    filename: php
+
+
+- name: "Ensure required PHP packages are present"
+  apt:
+    name: "{{ php_packages }}"
+    state: present
+
+#for tests only
+- name: "create check PHP install file"
+  template: 
+    src: check.php 
+    dest: /var/www/site.ru/DOC_ROOT/check.php
+    owner: site.ru
+    group: site.ru
+
+- name: "create check PHP-mysql connection"
+  template: 
+    src: 2.php 
+    dest: /var/www/site.ru/DOC_ROOT/2.php
+    owner: site.ru
+    group: site.ru
+
+- name: Set session.save_path
+  lineinfile:
+    path: "/etc/apache2/sites-available/{{ item }}.conf"
+    regexp: '^(\s*)(php_admin_value session.save_path) (.*)$'
+    insertbefore: '^(?i)\s*</VirtualHost>'
+    line: 'php_admin_value session.save_path /var/www/{{ item }}/sessions'
+  with_items: "{{ domains }}"
+
+- name: Set upload_tmp_dir
+  lineinfile:
+    path: "/etc/apache2/sites-available/{{ item }}.conf"
+    regexp: '^(\s*)(php_admin_value upload_tmp_dir) (.*)$'
+    insertbefore: '^(?i)</VirtualHost>'
+    line: 'php_admin_value upload_tmp_dir /var/www/{{ item }}/tmp'
+  with_items: "{{ domains }}"
+
+- name: Set sys_temp_dir value
+  lineinfile:
+    path: "/etc/apache2/sites-available/{{ item }}.conf"
+    regexp: '^(\s*)(php_admin_value sys_temp_dir) (.*)$'
+    insertbefore: '^(?i)</VirtualHost>'
+    line: 'php_admin_value sys_temp_dir /var/www/{{ item }}/tmp'
+  with_items: "{{ domains }}"
+

@@ -1,0 +1,19 @@
+---
+domains:
+  - site.ru
+
+wp_site_user: 'site.ru'
+wp_site_group: 'site.ru'
+
+#MySQL Settings
+wp_mysql_root_password: '123'
+wp_mysql_db: 'wordpress'
+wp_mysql_user: 'test'
+wp_mysql_password: '123'
+
+#HTTP Settings
+http_host: 'site.ru'
+http_conf: 'site.ru.conf'
+http_port: '81'
+
+

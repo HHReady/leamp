@@ -1,0 +1,63 @@
+---
+- name: Add Users
+  include_tasks: usersadd.yaml
+
+- name: Install PM
+  package: name='aptitude' update_cache=yes state=latest force_apt_get=yes
+
+- name: Install packages
+  package: name="{{ apache_packages }}" update_cache=yes state=latest
+
+- name: Enable Apache rewrite module
+  apache2_module: name=rewrite state=present
+  notify: restart apache
+
+- name: Create dirs and files for sites
+  include_tasks: dirs.yaml
+
+- name: Add Apache virtualhosts
+  template:
+    src: "templates/sites.conf.j2"
+    dest: "/etc/apache2/sites-available/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    t_domain: "{{ item }}"
+  with_items: "{{ domains }}"
+  notify: restart apache
+
+- name: Symlink virtualhost to sites-enabled.
+  file:
+    src: "/etc/apache2/sites-available/{{ item }}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ item }}.conf"
+    state: link
+  with_items: "{{ domains }}"
+  notify: restart apache
+
+- name: Remove default virtualhost file.
+  file:
+    path: "/etc/apache2/sites-enabled/000-default.conf"
+    state: absent
+  notify: restart apache
+
+- apache2_module:
+    state: absent
+    name: deflate
+    force: True
+
+- name: Ensure the default Apache port is 8080
+  lineinfile:
+    path: /etc/apache2/ports.conf
+    regexp: '^Listen 80'
+    insertafter: '^#Listen '
+    line: Listen {{ http_port }}
+  notify: restart apache
+
+- name: Klyaple
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^'
+    insertafter: EOF
+    line: '127.0.0.1     site.ru \n 127.0.0.1      site-2.ru'
+

@@ -1,0 +1,14 @@
+---
+apache_packages:
+  - apache2
+  - libapache2-mpm-itk
+  - libapache2-mod-rpaf
+  - curl
+apache_services:
+  - apache2
+apache_user: www-data
+log_name:
+  - error.log
+  - access.log
+  - nginx-error.log
+  - nginx-access.log

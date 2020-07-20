@@ -1,0 +1,75 @@
+---
+- name: Creates directory DOC_ROOT
+  file:
+    path: /var/www/{{ item }}/DOC_ROOT
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0775
+    recurse: yes
+  with_items: "{{ domains }}"
+
+- name: Creates directory tmp
+  file:
+    path: /var/www/{{ item }}/tmp
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0775
+    recurse: yes
+  with_items: "{{ domains }}"
+
+- name: Creates directory sessions
+  file:
+    path: /var/www/{{ item }}/sessions
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0775
+    recurse: yes
+  with_items: "{{ domains }}"
+
+- name: Creates directory logs
+  file:
+    path: /var/www/{{ item }}/logs
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0775
+    recurse: yes
+  with_items: "{{ domains }}"
+
+- name:  Add files for logs with correct file permissions
+  file:
+    path: /var/www/{{ item[0] }}/logs/{{item[1] }}
+    state: touch
+    owner: "{{ item[0] }}"
+    group: "{{ item[0] }}"
+    mode: 0644
+  with_nested:
+     - "{{ domains }}"
+     - "{{ log_name }}"
+
+- name: Add simple index.html
+  template:
+    src: "templates/index.html.j2"
+    dest: "/var/www/{{ item }}/DOC_ROOT/index.html"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0644
+  vars:
+    t_domain: "{{ item }}"
+  with_items: "{{ domains }}"
+
+
+- name: Add favicon
+  copy:
+    src: "files/favicon.ico"
+    dest: "/var/www/{{ item }}/DOC_ROOT/favicon.ico"
+    owner: '{{ item }}'
+    group: '{{ item }}'
+    mode: 0644
+  with_items: "{{ domains }}"
+  
+
+

@@ -1,0 +1,9 @@
+---
+pma_alias: 'phpmyadmin'
+pma_host: 'localhost'
+blowfish_secret: 'STRINGOFTHIRTYTWORANDOMCHARACTERS'
+pma_db: 'phpmyadmin'
+pma_mysql_user: 'phpmyadmin'
+pma_mysql_user_password: 'STRINGOFTHIRTYTWORANDOMCHARACTERS'
+pma_user: www-data
+pma_group: www-data

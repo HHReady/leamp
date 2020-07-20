@@ -1,0 +1,25 @@
+---
+- name: Create a groups
+  group: 
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ domains }}"
+
+- name:  
+  file:
+    path: /var/www/
+    state: directory
+    recurse: yes
+
+- name: Create a users
+  user:
+    name: "{{ item }}"
+    groups: "{{ item }}"
+    state: present
+    shell: /bin/false
+    system: no
+    home: /var/www/{{ item }}
+    createhome: yes
+    password: "{{ 'secret' | password_hash('sha512') }}"
+    update_password: on_create
+  with_items: "{{ domains }}"

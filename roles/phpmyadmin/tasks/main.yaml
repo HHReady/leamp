@@ -1,0 +1,98 @@
+---
+- name: Install packages
+  package: name="python3-passlib" update_cache=yes state=latest
+
+- name: Create phpmyadmin work dir
+  file:
+    path: /usr/share/phpmyadmin
+    owner: www-data
+    group: www-data
+    state: directory
+#        mode: '0755'
+
+- name: Download and extract latest stable phpmyadmin
+  unarchive:
+    src: "https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz"
+    dest: "/usr/share/phpmyadmin/"
+    remote_src: yes
+    extra_opts: ['--strip-components=1']
+    group: www-data
+    owner: www-data
+
+
+- name: Create temp dir
+  file:
+    path: /var/lib/phpmyadmin/tmp
+    owner: www-data
+    group: www-data
+    state: directory
+    mode: '0755'
+
+- name: Create sessions dir
+  file:
+    path: /var/lib/php/sessions
+    owner: www-data
+    group: www-data
+    state: directory
+    mode: '0755'
+
+- name: configure 
+  template:
+    src: config.inc.php.j2
+    dest: "/usr/share/phpmyadmin/config.inc.php"
+    owner: www-data
+    group: www-data
+    mode: "644"
+
+- name: Create a new database with name 'phpmyadmin'
+  mysql_db:
+    name: '{{ pma_db }}'
+    state: present
+
+- name: Create database user pma
+  mysql_user:
+    name: '{{ pma_mysql_user }}'
+    password: '{{ pma_mysql_user_password }}'
+    priv: '{{ pma_db }}.*:ALL,GRANT'
+    state: present
+
+
+- name: Import DB
+  shell: mysql phpmyadmin < /usr/share/phpmyadmin/sql/create_tables.sql
+
+# - name: Import data
+#   mysql_db: name=world state=import target=/tmp/world.sql login_us
+
+- name: configure Apache2
+  template:
+    src: phpmyadmin.conf.j2
+    dest: "/etc/apache2/conf-available/phpmyadmin.conf"
+    owner: www-data
+    group: www-data
+    mode: "644"
+
+- name: Create a symbolic link
+  file:
+    src: "/etc/apache2/conf-available/phpmyadmin.conf"
+    dest: "/etc/apache2/conf-enabled/phpmyadmin.conf"
+    owner: www-data
+    group: www-data
+    state: link
+
+- name: Create dir
+  file:
+    path: "/etc/phpmyadmin/"
+    owner: www-data
+    group: www-data
+    state: directory
+
+- htpasswd:
+    path: "/etc/phpmyadmin/htpasswd.setup"
+    name: "{{ pma_mysql_user }}"
+    password: "{{ pma_mysql_user_password }}"
+    owner: '{{ pma_user }}'
+    group: '{{ pma_group }}'
+    mode: 0640
+
+- name: restart apache
+  service: name=apache2 state=restarted
